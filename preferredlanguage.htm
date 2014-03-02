@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Favourite Language</title>
+    </head>
+    <body onLoad="myApp.init();">
+        <form onSubmit="myApp.sub();return false;">
+            <input type="text" id="name" placeholder="Github User">
+            <input type="submit">
+        </form>
+        <div id="result"></div>
+        <script type="text/javascript">
+            var myApp = {
+                options: {
+                    language: "en-uk",
+                    defaultUser: "marcolanaro"
+                },
+                i18n: {
+                    "en-uk": {
+                        loading: "Loading...",
+                        favoriteLang: "Favourite Programming Language: "
+                    }
+                },
+                init: function() {
+                    document.getElementById('name').focus();
+                    document.getElementById('name').value = this.options.defaultUser;
+                    this.sub();
+                },
+                writeMessage: function(message) {
+                    document.getElementById("result").innerHTML = message;
+                },
+                sub: function() {
+                    this.req(document.getElementById("name").value);
+                },
+                req: function(name) {
+                    this.writeMessage(this.i18n[this.options.language].loading);
+                    var script = document.createElement("script");
+                    script.type = "application/javascript";
+                    script.src = "https://api.github.com/users/"+name+"/repos?callback=myApp.getLanguage";
+                    document.getElementsByTagName('head')[0].appendChild(script);
+                },
+                getLanguage: function(response) {
+                    var repos = response.data;
+                    if (repos.message)
+                        this.writeMessage(repos.message);
+                    else
+                        this.writeMessage(this.i18n[this.options.language].favoriteLang + this.search(repos));
+                },
+                search: function(repos) {
+                    var languages = {};
+                    var max = 0, maxlang;
+                    for (var i = 0, l = repos.length; i < l; i += 1) {
+                        if (!languages[repos[i].language])
+                            languages[repos[i].language] = 0;
+                        languages[repos[i].language] += 1;
+
+                        if (languages[repos[i].language] > max) {
+                            max = languages[repos[i].language];
+                            maxlang = repos[i].language;
+                        }
+                    }
+                    return maxlang;
+                }
+            };
+        </script>
+    </body>
+</html>
